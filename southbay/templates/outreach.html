@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Outreach - South Bay Prospecting{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Outreach Queue</h1>
+        <p class="mt-1 text-gray-500">Prioritized list of agents ready for outreach</p>
+    </div>
+
+    <!-- Follow-ups Due -->
+    {% if due_followups %}
+    <div class="bg-yellow-50 rounded-xl border border-yellow-200 p-6">
+        <h2 class="text-lg font-semibold text-yellow-800 mb-4">
+            <i class="fas fa-bell mr-2"></i>Follow-ups Due ({{ due_followups|length }})
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for item in due_followups %}
+            <a href="{{ url_for('agent_detail', agent_id=item.agent_id) }}" class="flex items-center justify-between p-4 bg-white rounded-lg hover:shadow-md transition">
+                <div>
+                    <p class="font-medium text-gray-900">{{ item.agent_name }}</p>
+                    <p class="text-sm text-gray-500">Due: {{ item.follow_up_date }}</p>
+                    <p class="text-xs text-gray-400">Last: {{ item.method }} on {{ item.outreach_date }}</p>
+                </div>
+                <i class="fas fa-arrow-right text-yellow-500"></i>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Queue Stats -->
+    <div class="grid grid-cols-3 gap-4">
+        <div class="bg-red-50 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-red-600">{{ queue|selectattr('priority_score', 'ge', 100)|list|length }}</p>
+            <p class="text-sm text-red-800">Hot Agents</p>
+        </div>
+        <div class="bg-yellow-50 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-yellow-600">{{ queue|selectattr('priority_score', 'ge', 50)|selectattr('priority_score', 'lt', 100)|list|length }}</p>
+            <p class="text-sm text-yellow-800">First Contact</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-gray-600">{{ queue|selectattr('priority_score', 'lt', 50)|list|length }}</p>
+            <p class="text-sm text-gray-800">Follow-ups</p>
+        </div>
+    </div>
+
+    <!-- Queue List -->
+    {% if queue %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recent Activity</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in queue %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if item.priority_score >= 100 %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            <i class="fas fa-fire mr-1"></i>HOT
+                        </span>
+                        {% elif item.priority_score >= 50 %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                            HIGH
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                            Normal
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <a href="{{ url_for('agent_detail', agent_id=item.agent.id) }}" class="font-medium text-south-bay-600 hover:underline">
+                            {{ item.agent.name }}
+                        </a>
+                        <p class="text-sm text-gray-500">{{ item.agent.brokerage or 'Independent' }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ item.status.replace('_', ' ').title() }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-lg font-bold {% if item.context.recent_txn_count >= 3 %}text-red-600{% else %}text-gray-900{% endif %}">
+                            {{ item.context.recent_txn_count }}
+                        </span>
+                        <span class="text-sm text-gray-500">txns (30d)</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        {% if item.agent.email %}
+                        <a href="mailto:{{ item.agent.email }}" class="text-south-bay-600 hover:underline">
+                            <i class="fas fa-envelope mr-1"></i>Email
+                        </a>
+                        {% endif %}
+                        {% if item.agent.phone %}
+                        <a href="tel:{{ item.agent.phone }}" class="ml-2 text-south-bay-600 hover:underline">
+                            <i class="fas fa-phone mr-1"></i>Call
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <a href="{{ url_for('log_outreach', agent_id=item.agent.id) }}" class="inline-flex items-center px-3 py-1.5 border border-south-bay-600 text-sm font-medium rounded-lg text-south-bay-600 hover:bg-south-bay-50 transition">
+                            <i class="fas fa-paper-plane mr-1"></i>Reach Out
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900">Queue is empty</h3>
+        <p class="mt-1 text-gray-500">Add agents with recent transaction activity to populate the queue</p>
+        <a href="{{ url_for('quick_add') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-south-bay-600 hover:bg-south-bay-700">
+            <i class="fas fa-bolt mr-2"></i>Quick Add
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

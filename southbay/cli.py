@@ -643,6 +643,23 @@ def quick(agent_name, address, txn_type, city, price):
         ))
 
 
+# === Web Server Command ===
+
+@cli.command()
+@click.option("--host", "-h", default="127.0.0.1", help="Host to bind to")
+@click.option("--port", "-p", default=5000, type=int, help="Port to bind to")
+@click.option("--debug/--no-debug", default=True, help="Enable debug mode")
+def web(host, port, debug):
+    """Launch the web dashboard.
+
+    Example: python -m southbay web --port 8080
+    """
+    from .web import run_server
+    console.print(f"[bold green]Starting South Bay Prospecting Dashboard[/bold green]")
+    console.print(f"[dim]Open http://{host}:{port} in your browser[/dim]\n")
+    run_server(host=host, port=port, debug=debug)
+
+
 def main():
     """Entry point."""
     cli()

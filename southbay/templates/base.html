@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}South Bay Prospecting{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'south-bay': {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0ea5e9 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('dashboard') }}" class="flex items-center space-x-2">
+                        <i class="fas fa-house-chimney text-2xl"></i>
+                        <span class="font-bold text-xl">South Bay Prospecting</span>
+                    </a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="flex items-center space-x-4">
+                        <a href="{{ url_for('dashboard') }}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition {% if request.endpoint == 'dashboard' %}bg-white/20{% endif %}">
+                            <i class="fas fa-chart-line mr-1"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('agents_list') }}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition {% if 'agent' in request.endpoint %}bg-white/20{% endif %}">
+                            <i class="fas fa-users mr-1"></i> Agents
+                        </a>
+                        <a href="{{ url_for('transactions_list') }}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition {% if 'transaction' in request.endpoint %}bg-white/20{% endif %}">
+                            <i class="fas fa-file-signature mr-1"></i> Transactions
+                        </a>
+                        <a href="{{ url_for('outreach_queue') }}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition {% if 'outreach' in request.endpoint %}bg-white/20{% endif %}">
+                            <i class="fas fa-paper-plane mr-1"></i> Outreach
+                        </a>
+                        <a href="{{ url_for('quick_add') }}" class="ml-4 px-4 py-2 rounded-md text-sm font-medium bg-white text-south-bay-700 hover:bg-gray-100 transition">
+                            <i class="fas fa-bolt mr-1"></i> Quick Add
+                        </a>
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button" onclick="toggleMobileMenu()" class="text-white hover:bg-white/10 p-2 rounded-md">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden pb-4">
+            <div class="px-4 space-y-2">
+                <a href="{{ url_for('dashboard') }}" class="block px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10">Dashboard</a>
+                <a href="{{ url_for('agents_list') }}" class="block px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10">Agents</a>
+                <a href="{{ url_for('transactions_list') }}" class="block px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10">Transactions</a>
+                <a href="{{ url_for('outreach_queue') }}" class="block px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10">Outreach</a>
+                <a href="{{ url_for('quick_add') }}" class="block px-3 py-2 rounded-md text-sm font-medium bg-white/20">Quick Add</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                {% for category, message in messages %}
+                    <div class="mb-2 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-800{% elif category == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        <i class="fas {% if category == 'error' %}fa-exclamation-circle{% elif category == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+            <p>South Bay Title Rep Prospecting Assistant</p>
+            <p class="mt-1">Torrance • Manhattan Beach • Redondo Beach • El Segundo • Playa Vista</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

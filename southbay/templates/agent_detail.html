@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}{{ agent.name }} - South Bay Prospecting{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center">
+            <a href="{{ url_for('agents_list') }}" class="mr-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <div class="w-16 h-16 rounded-full {% if stats.transactions_30d >= 3 %}bg-red-100 text-red-600{% else %}bg-south-bay-100 text-south-bay-600{% endif %} flex items-center justify-center font-bold text-2xl">
+                {{ agent.name[0] }}
+            </div>
+            <div class="ml-4">
+                <h1 class="text-3xl font-bold text-gray-900 {% if agent.do_not_contact %}line-through{% endif %}">{{ agent.name }}</h1>
+                <p class="text-gray-500">{{ agent.brokerage or 'Independent' }}</p>
+            </div>
+        </div>
+        <div class="mt-4 sm:mt-0 flex space-x-2">
+            <a href="{{ url_for('log_outreach', agent_id=agent.id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-south-bay-600 hover:bg-south-bay-700">
+                <i class="fas fa-paper-plane mr-2"></i>Log Outreach
+            </a>
+            <a href="{{ url_for('edit_agent', agent_id=agent.id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50">
+                <i class="fas fa-edit mr-2"></i>Edit
+            </a>
+        </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="flex flex-wrap gap-2">
+        {% if stats.transactions_30d >= 3 %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <i class="fas fa-fire mr-1"></i>Hot Agent
+        </span>
+        {% endif %}
+        {% if agent.is_team_agent %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-100 text-cyan-800">
+            <i class="fas fa-users mr-1"></i>Team Agent
+        </span>
+        {% endif %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            Priority: {{ agent.priority|capitalize }}
+        </span>
+        {% if agent.do_not_contact %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <i class="fas fa-ban mr-1"></i>Do Not Contact
+        </span>
+        {% endif %}
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+        <!-- Left Column - Info & Stats -->
+        <div class="space-y-6">
+            <!-- Contact Info -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Contact Info</h2>
+                <div class="space-y-3">
+                    {% if agent.email %}
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-gray-400 w-6"></i>
+                        <a href="mailto:{{ agent.email }}" class="text-south-bay-600 hover:underline">{{ agent.email }}</a>
+                    </div>
+                    {% endif %}
+                    {% if agent.phone %}
+                    <div class="flex items-center">
+                        <i class="fas fa-phone text-gray-400 w-6"></i>
+                        <a href="tel:{{ agent.phone }}" class="text-south-bay-600 hover:underline">{{ agent.phone }}</a>
+                    </div>
+                    {% endif %}
+                    {% if agent.instagram %}
+                    <div class="flex items-center">
+                        <i class="fab fa-instagram text-gray-400 w-6"></i>
+                        <a href="https://instagram.com/{{ agent.instagram }}" target="_blank" class="text-south-bay-600 hover:underline">@{{ agent.instagram }}</a>
+                    </div>
+                    {% endif %}
+                    {% if agent.linkedin %}
+                    <div class="flex items-center">
+                        <i class="fab fa-linkedin text-gray-400 w-6"></i>
+                        <a href="{{ agent.linkedin }}" target="_blank" class="text-south-bay-600 hover:underline">LinkedIn</a>
+                    </div>
+                    {% endif %}
+                    {% if not agent.email and not agent.phone %}
+                    <p class="text-gray-500 text-sm">No contact info added yet</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Activity Stats</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Transactions (30 days)</span>
+                        <span class="font-semibold {% if stats.transactions_30d >= 3 %}text-red-600{% else %}text-gray-900{% endif %}">{{ stats.transactions_30d }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Transactions (12 months)</span>
+                        <span class="font-semibold text-gray-900">{{ stats.transactions_yearly }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Total transactions</span>
+                        <span class="font-semibold text-gray-900">{{ stats.total_transactions }}</span>
+                    </div>
+                    <div class="border-t pt-4 flex justify-between">
+                        <span class="text-gray-500">Total outreach</span>
+                        <span class="font-semibold text-gray-900">{{ stats.total_outreach }}</span>
+                    </div>
+                    {% if stats.last_outreach_date %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Last outreach</span>
+                        <span class="font-semibold text-gray-900">{{ stats.last_outreach_date }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notes -->
+            {% if agent.notes %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
+                <p class="text-gray-600">{{ agent.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Middle Column - Outreach -->
+        <div class="space-y-6">
+            <!-- Outreach Timing -->
+            <div class="{% if 'PRIORITY' in timing or 'Good to go' in timing %}bg-green-50 border-green-200{% elif 'Wait' in timing %}bg-yellow-50 border-yellow-200{% else %}bg-gray-50 border-gray-200{% endif %} rounded-xl border p-6">
+                <h2 class="text-lg font-semibold {% if 'PRIORITY' in timing %}text-green-800{% elif 'Wait' in timing %}text-yellow-800{% else %}text-gray-800{% endif %} mb-2">
+                    <i class="fas {% if 'PRIORITY' in timing %}fa-fire{% elif 'Good to go' in timing %}fa-check-circle{% elif 'Wait' in timing %}fa-clock{% else %}fa-info-circle{% endif %} mr-2"></i>
+                    Outreach Status
+                </h2>
+                <p class="{% if 'PRIORITY' in timing %}text-green-700{% elif 'Wait' in timing %}text-yellow-700{% else %}text-gray-700{% endif %}">{{ timing }}</p>
+            </div>
+
+            <!-- Draft Message -->
+            {% if draft_message and message_type != 'skip' %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-comment-dots text-south-bay-500 mr-2"></i>Suggested Message
+                </h2>
+                <div class="bg-gray-50 rounded-lg p-4 text-gray-700 italic">
+                    "{{ draft_message }}"
+                </div>
+                <p class="mt-2 text-sm text-gray-500">Type: {{ message_type }}</p>
+                <a href="{{ url_for('log_outreach', agent_id=agent.id) }}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-south-bay-600 hover:bg-south-bay-700">
+                    <i class="fas fa-paper-plane mr-2"></i>Send & Log
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Record Response -->
+            {% if stats.total_outreach > 0 and stats.last_outreach_status == 'no_response' %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Record Response</h2>
+                <form method="POST" action="{{ url_for('record_response', agent_id=agent.id) }}">
+                    <div class="space-y-3">
+                        <div class="flex space-x-2">
+                            <button type="submit" name="response_status" value="positive" class="flex-1 px-3 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition text-sm font-medium">
+                                <i class="fas fa-thumbs-up mr-1"></i>Positive
+                            </button>
+                            <button type="submit" name="response_status" value="neutral" class="flex-1 px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                                <i class="fas fa-meh mr-1"></i>Neutral
+                            </button>
+                            <button type="submit" name="response_status" value="not_interested" class="flex-1 px-3 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition text-sm font-medium">
+                                <i class="fas fa-thumbs-down mr-1"></i>Not Interested
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Outreach History -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Outreach History</h2>
+                {% if outreach_history %}
+                <div class="space-y-3">
+                    {% for outreach in outreach_history[:10] %}
+                    <div class="flex items-start p-3 rounded-lg bg-gray-50">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full {% if outreach.response_status == 'positive' %}bg-green-100 text-green-600{% elif outreach.response_status == 'not_interested' %}bg-red-100 text-red-600{% else %}bg-gray-200 text-gray-500{% endif %} flex items-center justify-center">
+                            <i class="fas {% if outreach.method == 'email' %}fa-envelope{% elif outreach.method == 'text' %}fa-comment{% elif outreach.method == 'call' %}fa-phone{% elif outreach.method == 'dm' %}fa-at{% else %}fa-user{% endif %}"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">{{ outreach.method|capitalize }} - {{ outreach.outreach_date }}</p>
+                            <p class="text-sm text-gray-500">
+                                Status: <span class="{% if outreach.response_status == 'positive' %}text-green-600{% elif outreach.response_status == 'not_interested' %}text-red-600{% else %}text-gray-600{% endif %}">{{ outreach.response_status|replace('_', ' ')|capitalize }}</span>
+                            </p>
+                            {% if outreach.notes %}
+                            <p class="text-sm text-gray-500 mt-1">{{ outreach.notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-sm">No outreach history yet</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column - Transactions -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Transactions</h2>
+                    <a href="{{ url_for('add_transaction') }}" class="text-sm text-south-bay-600 hover:underline">+ Add</a>
+                </div>
+                {% if transactions %}
+                <div class="space-y-3">
+                    {% for txn in transactions[:15] %}
+                    <div class="p-3 rounded-lg bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {% if txn.transaction_type == 'listing' %}bg-blue-100 text-blue-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ txn.transaction_type|capitalize }}
+                            </span>
+                            <span class="text-sm text-gray-500">{{ txn.transaction_date }}</span>
+                        </div>
+                        <p class="mt-1 text-sm font-medium text-gray-900">{{ txn.address }}</p>
+                        <div class="mt-1 flex items-center justify-between text-sm">
+                            <span class="text-gray-500">{{ txn.city or 'Unknown' }}</span>
+                            {% if txn.price %}
+                            <span class="font-medium text-gray-900">${{ "{:,}".format(txn.price) }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-sm">No transactions recorded</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

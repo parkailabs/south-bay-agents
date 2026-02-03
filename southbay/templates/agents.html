@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Agents - South Bay Prospecting{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Agents</h1>
+            <p class="mt-1 text-gray-500">{{ agents|length }} tracked agents</p>
+        </div>
+        <a href="{{ url_for('add_agent') }}" class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-south-bay-600 hover:bg-south-bay-700">
+            <i class="fas fa-user-plus mr-2"></i>Add Agent
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <form method="GET" class="flex flex-wrap gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Brokerage</label>
+                <select name="brokerage" class="rounded-lg border-gray-300 shadow-sm focus:border-south-bay-500 focus:ring-south-bay-500">
+                    <option value="">All Brokerages</option>
+                    {% for b in brokerages %}
+                    <option value="{{ b }}" {% if request.args.get('brokerage') == b %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select name="priority" class="rounded-lg border-gray-300 shadow-sm focus:border-south-bay-500 focus:ring-south-bay-500">
+                    <option value="">All Priorities</option>
+                    <option value="high" {% if request.args.get('priority') == 'high' %}selected{% endif %}>High</option>
+                    <option value="normal" {% if request.args.get('priority') == 'normal' %}selected{% endif %}>Normal</option>
+                    <option value="low" {% if request.args.get('priority') == 'low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                    <i class="fas fa-filter mr-1"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Agents Grid -->
+    {% if agents %}
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for agent in agents %}
+        <a href="{{ url_for('agent_detail', agent_id=agent.id) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:border-south-bay-200 transition">
+            <div class="flex items-start justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full {% if agent.stats.transactions_30d >= 3 %}bg-red-100 text-red-600{% elif agent.do_not_contact %}bg-gray-200 text-gray-400{% else %}bg-south-bay-100 text-south-bay-600{% endif %} flex items-center justify-center font-bold text-lg">
+                        {{ agent.name[0] }}
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-semibold text-gray-900 {% if agent.do_not_contact %}line-through text-gray-400{% endif %}">{{ agent.name }}</h3>
+                        <p class="text-sm text-gray-500">{{ agent.brokerage or 'Independent' }}</p>
+                    </div>
+                </div>
+                {% if agent.stats.transactions_30d >= 3 %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                    <i class="fas fa-fire mr-1"></i>HOT
+                </span>
+                {% elif agent.is_team_agent %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-100 text-cyan-800">
+                    Team
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div class="bg-gray-50 rounded-lg p-2">
+                    <p class="text-lg font-bold text-gray-900">{{ agent.stats.transactions_30d }}</p>
+                    <p class="text-xs text-gray-500">30 days</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-2">
+                    <p class="text-lg font-bold text-gray-900">{{ agent.stats.transactions_yearly }}</p>
+                    <p class="text-xs text-gray-500">12 months</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-2">
+                    <p class="text-lg font-bold text-gray-900">{{ agent.stats.total_outreach }}</p>
+                    <p class="text-xs text-gray-500">Outreach</p>
+                </div>
+            </div>
+
+            {% if agent.email or agent.phone %}
+            <div class="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500">
+                {% if agent.email %}<i class="fas fa-envelope mr-1"></i>{{ agent.email }}{% endif %}
+                {% if agent.phone %}<span class="ml-2"><i class="fas fa-phone mr-1"></i>{{ agent.phone }}</span>{% endif %}
+            </div>
+            {% endif %}
+
+            {% if agent.do_not_contact %}
+            <div class="mt-4 text-xs text-red-600">
+                <i class="fas fa-ban mr-1"></i>Do Not Contact
+            </div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900">No agents yet</h3>
+        <p class="mt-1 text-gray-500">Start by adding agents you want to track</p>
+        <a href="{{ url_for('add_agent') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-south-bay-600 hover:bg-south-bay-700">
+            <i class="fas fa-user-plus mr-2"></i>Add First Agent
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
